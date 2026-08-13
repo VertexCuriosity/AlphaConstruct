@@ -3,14 +3,254 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:local="clr-namespace:AlphaConstruct"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  mc:Ignorable="d"
                  Title="AlphaConstruct"
-                 Height="700"
-                 Width="900"
-                 WindowStartupLocation="CenterScreen">
-    <Grid>
+                 Width="950"
+                 Height="900"
+                 MinWidth="760"
+                 MinHeight="700"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="None">
 
+    <Grid Background="{ui:ThemeResource SolidBackgroundFillColorBaseBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Modern title bar -->
+        <ui:TitleBar Grid.Row="0"
+                     Title="AlphaConstruct"
+                     ShowMaximize="True"
+                     ShowMinimize="True"
+                     ShowClose="True"/>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+
+            <StackPanel Margin="28,20,28,28">
+
+                <!-- Header -->
+                <TextBlock Text="AlphaConstruct"
+                           FontSize="32"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,6"/>
+
+                <TextBlock Text="Reconstruct transparency from two matching images captured against black and white backgrounds."
+                           FontSize="15"
+                           Opacity="0.75"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,24"/>
+
+                <!-- Source -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+
+                        <TextBlock Text="Source"
+                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                        <!-- White image -->
+                        <TextBlock Text="Source file white image"
+                                   Style="{StaticResource LabelTextStyle}"/>
+
+                        <Grid Margin="0,6,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ui:TextBox x:Name="WhiteImageTextBox"
+                                        Grid.Column="0"
+                                        PlaceholderText="Choose the image captured against a white background"
+                                        ToolTip="Choose the image captured against a white background."/>
+
+                            <ui:Button x:Name="WhiteImageBrowseButton"
+                                       Grid.Column="2"
+                                       Content="Browse..."
+                                       Height="38"
+                                       ToolTip="Choose the image captured against a white background."/>
+                        </Grid>
+
+                        <!-- Black image -->
+                        <TextBlock Text="Source file black image"
+                                   Style="{StaticResource LabelTextStyle}"/>
+
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ui:TextBox x:Name="BlackImageTextBox"
+                                        Grid.Column="0"
+                                        PlaceholderText="Choose the image captured against a black background"
+                                        ToolTip="Choose the matching image captured against a black background."/>
+
+                            <ui:Button x:Name="BlackImageBrowseButton"
+                                       Grid.Column="2"
+                                       Content="Browse..."
+                                       Height="38"
+                                       ToolTip="Choose the matching image captured against a black background."/>
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Output -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+
+                        <TextBlock Text="Output"
+                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                        <!-- Output location -->
+                        <TextBlock Text="Output location"
+                                   Style="{StaticResource LabelTextStyle}"/>
+
+                        <Grid Margin="0,6,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ui:TextBox x:Name="OutputLocationTextBox"
+                                        Grid.Column="0"
+                                        PlaceholderText="Default: parent folder of the white source image"
+                                        ToolTip="Choose where the reconstructed PNG should be saved."/>
+
+                            <ui:Button x:Name="OutputBrowseButton"
+                                       Grid.Column="2"
+                                       Content="Browse..."
+                                       Height="38"
+                                       ToolTip="Choose where the reconstructed PNG should be saved."/>
+                        </Grid>
+
+                        <!-- Output name -->
+                        <TextBlock Text="Output image name"
+                                   Style="{StaticResource LabelTextStyle}"/>
+
+                        <ui:TextBox x:Name="OutputImageNameTextBox"
+                                    PlaceholderText="Image_Copy"
+                                    Height="38"
+                                    Margin="0,6,0,0"
+                                    ToolTip="Enter the filename for the reconstructed PNG."/>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Preview -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="260"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="Preview"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   Margin="0"/>
+
+                        <!-- Preview surface -->
+                        <Border Grid.Row="2"
+                                x:Name="PreviewBorder"
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                BorderBrush="{ui:ThemeResource CardStrokeColorDefaultBrush}"
+                                ClipToBounds="True">
+
+                            <!-- Temporary checkerboard.
+                                 Later the Linear and sRGB images will be
+                                 layered on top of this surface. -->
+                            <Border.Background>
+                                <DrawingBrush TileMode="Tile"
+                                              Viewport="0,0,24,24"
+                                              ViewportUnits="Absolute">
+                                    <DrawingBrush.Drawing>
+                                        <DrawingGroup>
+
+                                            <GeometryDrawing Brush="#FFE8E8E8">
+                                                <GeometryDrawing.Geometry>
+                                                    <RectangleGeometry Rect="0,0,24,24"/>
+                                                </GeometryDrawing.Geometry>
+                                            </GeometryDrawing>
+
+                                            <GeometryDrawing Brush="#FFC8C8C8">
+                                                <GeometryDrawing.Geometry>
+                                                    <GeometryGroup>
+                                                        <RectangleGeometry Rect="0,0,12,12"/>
+                                                        <RectangleGeometry Rect="12,12,12,12"/>
+                                                    </GeometryGroup>
+                                                </GeometryDrawing.Geometry>
+                                            </GeometryDrawing>
+
+                                        </DrawingGroup>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Border.Background>
+
+                            <TextBlock x:Name="PreviewPlaceholderText"
+                                       Text="A preview of the newly created image will be shown here"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Foreground="#FF666666"
+                                       Margin="24"/>
+
+                        </Border>
+
+                        <!-- Reconstruction choice -->
+                        <Grid Grid.Row="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ui:Button x:Name="UseLinearButton"
+                                       Grid.Column="0"
+                                       Content="Use Linear"
+                                       Height="38"
+                                       IsEnabled="False"
+                                       ToolTip="Use the Linear-light reconstruction for the final image."/>
+
+                            <ui:Button x:Name="UseSrgbButton"
+                                       Grid.Column="2"
+                                       Content="Use sRGB"
+                                       Height="38"
+                                       IsEnabled="False"
+                                       ToolTip="Use the direct sRGB reconstruction for the final image."/>
+
+                        </Grid>
+
+                    </Grid>
+                </Border>
+
+                <!-- Create image -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,6,0,0">
+
+                    <ui:Button x:Name="CreateImageButton"
+                               Content="Create Image"
+                               Height="44"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               IsEnabled="False"
+                               ToolTip="Create the transparent PNG using the selected reconstruction method."/>
+
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </ui:FluentWindow>
