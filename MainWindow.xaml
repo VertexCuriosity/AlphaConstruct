@@ -71,7 +71,8 @@
                                        Grid.Column="2"
                                        Content="Browse..."
                                        Height="38"
-                                       ToolTip="Choose the image captured against a white background."/>
+                                       ToolTip="Choose the image captured against a white background."
+                                       Click="WhiteImageBrowseButton_Click"/>
                         </Grid>
 
                         <!-- Black image -->
@@ -94,7 +95,8 @@
                                        Grid.Column="2"
                                        Content="Browse..."
                                        Height="38"
-                                       ToolTip="Choose the matching image captured against a black background."/>
+                                       ToolTip="Choose the matching image captured against a black background."
+                                       Click="BlackImageBrowseButton_Click"/>
                         </Grid>
 
                     </StackPanel>
@@ -127,7 +129,8 @@
                                        Grid.Column="2"
                                        Content="Browse..."
                                        Height="38"
-                                       ToolTip="Choose where the reconstructed PNG should be saved."/>
+                                       ToolTip="Choose where the reconstructed PNG should be saved."
+                                       Click="OutputBrowseButton_Click"/>
                         </Grid>
 
                         <!-- Output name -->

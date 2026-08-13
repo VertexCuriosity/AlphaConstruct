@@ -1,17 +1,8 @@
-﻿using System.Text;
+﻿using Microsoft.Win32;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-
 
 namespace AlphaConstruct;
 
@@ -59,4 +50,110 @@ public partial class MainWindow : FluentWindow
     {
         SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // File selection
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private const string ImageFileFilter =
+        "Supported image files|*.png;*.tif;*.tiff;*.bmp;*.jpg;*.jpeg|" +
+        "PNG files|*.png|" +
+        "TIFF files|*.tif;*.tiff|" +
+        "BMP files|*.bmp|" +
+        "JPEG files|*.jpg;*.jpeg|" +
+        "All files|*.*";
+
+    private void WhiteImageBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new()
+        {
+            Title = "Choose white background image",
+            Filter = ImageFileFilter
+        };
+
+        SetInitialImageDirectory(dialog, WhiteImageTextBox.Text, BlackImageTextBox.Text);
+
+        if (dialog.ShowDialog() == true)
+        {
+            WhiteImageTextBox.Text = dialog.FileName;
+
+            string? sourceFolder = Path.GetDirectoryName(dialog.FileName);
+
+            if (!string.IsNullOrWhiteSpace(sourceFolder))
+            {
+                OutputLocationTextBox.Text = sourceFolder;
+            }
+        }
+    }
+
+    private void BlackImageBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new()
+        {
+            Title = "Choose black background image",
+            Filter = ImageFileFilter
+        };
+
+        SetInitialImageDirectory(dialog, BlackImageTextBox.Text, WhiteImageTextBox.Text);
+
+        if (dialog.ShowDialog() == true)
+        {
+            BlackImageTextBox.Text = dialog.FileName;
+        }
+    }
+
+    private void OutputBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFolderDialog dialog = new()
+        {
+            Title = "Choose output folder"
+        };
+
+        string currentOutputFolder = OutputLocationTextBox.Text;
+
+        if (!string.IsNullOrWhiteSpace(currentOutputFolder) &&
+            Directory.Exists(currentOutputFolder))
+        {
+            dialog.InitialDirectory = currentOutputFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(WhiteImageTextBox.Text))
+        {
+            string? whiteImageFolder = Path.GetDirectoryName(WhiteImageTextBox.Text);
+
+            if (!string.IsNullOrWhiteSpace(whiteImageFolder) &&
+                Directory.Exists(whiteImageFolder))
+            {
+                dialog.InitialDirectory = whiteImageFolder;
+            }
+        }
+
+        if (dialog.ShowDialog() == true)
+        {
+            OutputLocationTextBox.Text = dialog.FolderName;
+        }
+    }
+
+    private static void SetInitialImageDirectory(
+        OpenFileDialog dialog,
+        string preferredImagePath,
+        string fallbackImagePath)
+    {
+        string? preferredFolder = Path.GetDirectoryName(preferredImagePath);
+
+        if (!string.IsNullOrWhiteSpace(preferredFolder) &&
+            Directory.Exists(preferredFolder))
+        {
+            dialog.InitialDirectory = preferredFolder;
+            return;
+        }
+
+        string? fallbackFolder = Path.GetDirectoryName(fallbackImagePath);
+
+        if (!string.IsNullOrWhiteSpace(fallbackFolder) &&
+            Directory.Exists(fallbackFolder))
+        {
+            dialog.InitialDirectory = fallbackFolder;
+        }
+    }
+
 }
