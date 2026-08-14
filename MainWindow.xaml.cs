@@ -749,6 +749,34 @@ public partial class MainWindow : FluentWindow
         e.Handled = true;
     }
 
+    private void CheckerboardBackgroundButton_Click(
+    object sender,
+    RoutedEventArgs e)
+    {
+        PreviewBackground.Background =
+            (Brush)FindResource("CheckerboardBrush");
+
+        CheckerboardBackgroundButton.Appearance =
+            ControlAppearance.Primary;
+
+        NeutralGrayBackgroundButton.Appearance =
+            ControlAppearance.Secondary;
+    }
+
+    private void NeutralGrayBackgroundButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        PreviewBackground.Background =
+            (Brush)FindResource("NeutralGrayPreviewBrush");
+
+        CheckerboardBackgroundButton.Appearance =
+            ControlAppearance.Secondary;
+
+        NeutralGrayBackgroundButton.Appearance =
+            ControlAppearance.Primary;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
     // Output selection
     // ─────────────────────────────────────────────────────────────────────────────

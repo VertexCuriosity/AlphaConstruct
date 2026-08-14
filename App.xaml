@@ -31,6 +31,38 @@
                 <Setter Property="Opacity" Value="0.8"/>
             </Style>
 
+            <!-- Preview checkerboard background -->
+            <DrawingBrush x:Key="CheckerboardBrush"
+                      TileMode="Tile"
+                      Viewport="0,0,24,24"
+                      ViewportUnits="Absolute">
+
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+
+                        <GeometryDrawing Brush="#FFE8E8E8">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,24,24"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+
+                        <GeometryDrawing Brush="#FFC8C8C8">
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <RectangleGeometry Rect="0,0,12,12"/>
+                                    <RectangleGeometry Rect="12,12,12,12"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+
+            </DrawingBrush>
+
+            <SolidColorBrush x:Key="NeutralGrayPreviewBrush"
+                 Color="#808080"/>
+
         </ResourceDictionary>
 
     </Application.Resources>
