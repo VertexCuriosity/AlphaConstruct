@@ -681,6 +681,13 @@ public partial class MainWindow : FluentWindow
 
         double splitPosition = previewWidth * _previewSplitRatio;
 
+        LinearPreviewImage.Clip = new RectangleGeometry(
+        new Rect(
+            0,
+            0,
+            splitPosition,
+            previewHeight));
+
         SrgbPreviewClipGrid.Clip = new RectangleGeometry(
             new Rect(
                 splitPosition,
@@ -688,7 +695,6 @@ public partial class MainWindow : FluentWindow
                 previewWidth - splitPosition,
                 previewHeight));
 
-        PreviewDivider.HorizontalAlignment = HorizontalAlignment.Left;
         PreviewDividerHitArea.Margin = new Thickness(
             splitPosition - PreviewDividerHitArea.Width / 2.0,
             0,
