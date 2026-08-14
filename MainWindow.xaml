@@ -7,9 +7,9 @@
                  mc:Ignorable="d"
                  Title="AlphaConstruct"
                  Width="950"
-                 Height="900"
+                 Height="1020"
                  MinWidth="760"
-                 MinHeight="700"
+                 MinHeight="500"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="None">
@@ -169,7 +169,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="12"/>
-                            <RowDefinition Height="260"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="16"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
@@ -182,6 +182,7 @@
                         <!-- Preview surface -->
                         <Border Grid.Row="2"
                                 x:Name="PreviewBorder"
+                                MinHeight="260"
                                 CornerRadius="8"
                                 BorderThickness="1"
                                 BorderBrush="{ui:ThemeResource CardStrokeColorDefaultBrush}"

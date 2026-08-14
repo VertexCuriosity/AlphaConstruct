@@ -19,6 +19,8 @@ public partial class MainWindow : FluentWindow
     {
         InitializeComponent();
 
+        PreviewBorder.SizeChanged += PreviewBorder_SizeChanged;
+
         ApplyWindowsTheme();
 
         SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
@@ -654,6 +656,40 @@ public partial class MainWindow : FluentWindow
 
         UseLinearButton.IsEnabled = true;
         UseSrgbButton.IsEnabled = true;
+
+        UpdatePreviewSize();
     }
+
+    private void PreviewBorder_SizeChanged(
+        object sender,
+        SizeChangedEventArgs e)
+    {
+        if (e.WidthChanged)
+        {
+            UpdatePreviewSize();
+        }
+    }
+
+    private void UpdatePreviewSize()
+    {
+        if (_linearResult == null)
+        {
+            return;
+        }
+
+        double previewWidth = PreviewBorder.ActualWidth;
+
+        if (previewWidth <= 0)
+        {
+            return;
+        }
+
+        double aspectRatio =
+            (double)_linearResult.PixelHeight /
+            _linearResult.PixelWidth;
+
+        PreviewBorder.Height = previewWidth * aspectRatio;
+    }
+
 
 }
