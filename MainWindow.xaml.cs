@@ -831,4 +831,98 @@ public partial class MainWindow : FluentWindow
 
         CreateImageButton.IsEnabled = false;
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Image export
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private void CreateImageButton_Click(object sender, RoutedEventArgs e)
+    {
+        BitmapSource? selectedImage = _selectedReconstruction switch
+        {
+            ReconstructionChoice.Linear => _linearResult,
+            ReconstructionChoice.Srgb => _srgbResult,
+            _ => null
+        };
+
+        if (selectedImage == null)
+        {
+            ShowSourceError("No reconstructed image is available to export.");
+            SystemSounds.Exclamation.Play();
+            return;
+        }
+
+        string outputFolder = OutputLocationTextBox.Text.Trim();
+        string outputName = OutputImageNameTextBox.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(outputFolder) ||
+            !Directory.Exists(outputFolder))
+        {
+            ShowSourceError("Please choose a valid output location.");
+            SystemSounds.Exclamation.Play();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(outputName))
+        {
+            ShowSourceError("Please enter an output image name.");
+            SystemSounds.Exclamation.Play();
+            return;
+        }
+
+        if (!outputName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+        {
+            outputName += ".png";
+        }
+
+        string outputPath = Path.Combine(outputFolder, outputName);
+
+        if (File.Exists(outputPath))
+        {
+            System.Windows.MessageBoxResult overwriteResult =
+                System.Windows.MessageBox.Show(
+                    $"The file already exists:\n\n{outputPath}\n\nDo you want to overwrite it?",
+                    "File already exists",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Warning);
+
+            if (overwriteResult != System.Windows.MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
+
+        try
+        {
+            PngBitmapEncoder encoder = new();
+
+            encoder.Frames.Add(
+                BitmapFrame.Create(selectedImage));
+
+            using FileStream stream = new(
+                outputPath,
+                FileMode.Create,
+                FileAccess.Write);
+
+            encoder.Save(stream);
+
+            System.Windows.MessageBox.Show(
+                $"Image created successfully:\n\n{outputPath}",
+                "Image created",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show(
+                $"The image could not be saved:\n\n{ex.Message}",
+                "Export failed",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+
+            SystemSounds.Exclamation.Play();
+        }
+    }
+
+
 }

@@ -326,7 +326,8 @@
                                FontSize="15"
                                FontWeight="SemiBold"
                                IsEnabled="False"
-                               ToolTip="Create the transparent PNG using the selected reconstruction method."/>
+                               ToolTip="Create the transparent PNG using the selected reconstruction method."
+                               Click="CreateImageButton_Click"/>
 
                 </StackPanel>
 
