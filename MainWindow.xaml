@@ -235,11 +235,21 @@
                                 </Grid>
 
                                 <!-- Divider -->
-                                <Border x:Name="PreviewDivider"
-                                        Width="3"
-                                        Background="White"
-                                        HorizontalAlignment="Center"
-                                        Visibility="Collapsed"/>
+                                <Grid x:Name="PreviewDividerHitArea"
+                                      Width="18"
+                                      HorizontalAlignment="Left"
+                                      Background="Transparent"
+                                      Cursor="SizeWE"
+                                      Visibility="Collapsed"
+                                      MouseLeftButtonDown="PreviewDivider_MouseLeftButtonDown"
+                                      MouseMove="PreviewDivider_MouseMove"
+                                      MouseLeftButtonUp="PreviewDivider_MouseLeftButtonUp">
+
+                                    <Border x:Name="PreviewDivider"
+                                            Width="3"
+                                            Background="White"
+                                            HorizontalAlignment="Center"/>
+                                </Grid>
 
                                 <!-- Labels -->
                                 <TextBlock x:Name="LinearPreviewLabel"

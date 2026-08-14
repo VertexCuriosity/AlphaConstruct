@@ -2,6 +2,7 @@
 using System.IO;
 using System.Media;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Wpf.Ui.Appearance;
@@ -14,6 +15,8 @@ public partial class MainWindow : FluentWindow
     private BitmapSource? _linearResult;
     private BitmapSource? _srgbResult;
     private bool _sourcePairIsValid;
+    private double _previewSplitRatio = 0.5;
+    private bool _isDraggingPreviewDivider;
 
     public MainWindow()
     {
@@ -630,7 +633,7 @@ public partial class MainWindow : FluentWindow
 
             LinearPreviewImage.Visibility = Visibility.Collapsed;
             SrgbPreviewClipGrid.Visibility = Visibility.Collapsed;
-            PreviewDivider.Visibility = Visibility.Collapsed;
+            PreviewDividerHitArea.Visibility = Visibility.Collapsed;
             LinearPreviewLabel.Visibility = Visibility.Collapsed;
             SrgbPreviewLabel.Visibility = Visibility.Collapsed;
 
@@ -648,7 +651,7 @@ public partial class MainWindow : FluentWindow
         LinearPreviewImage.Visibility = Visibility.Visible;
         SrgbPreviewClipGrid.Visibility = Visibility.Visible;
 
-        PreviewDivider.Visibility = Visibility.Visible;
+        PreviewDividerHitArea.Visibility = Visibility.Visible;
         LinearPreviewLabel.Visibility = Visibility.Visible;
         SrgbPreviewLabel.Visibility = Visibility.Visible;
 
@@ -658,6 +661,7 @@ public partial class MainWindow : FluentWindow
         UseSrgbButton.IsEnabled = true;
 
         UpdatePreviewSize();
+        UpdatePreviewSplit();
     }
 
     private void PreviewBorder_SizeChanged(
@@ -667,6 +671,7 @@ public partial class MainWindow : FluentWindow
         if (e.WidthChanged)
         {
             UpdatePreviewSize();
+            UpdatePreviewSplit();
         }
     }
 
@@ -691,5 +696,88 @@ public partial class MainWindow : FluentWindow
         PreviewBorder.Height = previewWidth * aspectRatio;
     }
 
+    private void UpdatePreviewSplit()
+    {
+        if (_linearResult == null || _srgbResult == null)
+        {
+            return;
+        }
 
+        double previewWidth = PreviewBorder.ActualWidth;
+        double previewHeight = PreviewBorder.ActualHeight;
+
+        if (previewWidth <= 0 || previewHeight <= 0)
+        {
+            return;
+        }
+
+        double splitPosition = previewWidth * _previewSplitRatio;
+
+        SrgbPreviewClipGrid.Clip = new RectangleGeometry(
+            new Rect(
+                splitPosition,
+                0,
+                previewWidth - splitPosition,
+                previewHeight));
+
+        PreviewDivider.HorizontalAlignment = HorizontalAlignment.Left;
+        PreviewDividerHitArea.Margin = new Thickness(
+            splitPosition - PreviewDividerHitArea.Width / 2.0,
+            0,
+            0,
+            0);
+    }
+
+    private void PreviewDivider_MouseLeftButtonDown(
+    object sender,
+    MouseButtonEventArgs e)
+    {
+        _isDraggingPreviewDivider = true;
+
+        PreviewDividerHitArea.CaptureMouse();
+
+        e.Handled = true;
+    }
+
+    private void PreviewDivider_MouseMove(
+        object sender,
+        MouseEventArgs e)
+    {
+        if (!_isDraggingPreviewDivider)
+        {
+            return;
+        }
+
+        double previewWidth = PreviewBorder.ActualWidth;
+
+        if (previewWidth <= 0)
+        {
+            return;
+        }
+
+        Point mousePosition = e.GetPosition(PreviewBorder);
+
+        _previewSplitRatio = Math.Clamp(
+            mousePosition.X / previewWidth,
+            0.0,
+            1.0);
+
+        UpdatePreviewSplit();
+    }
+
+    private void PreviewDivider_MouseLeftButtonUp(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (!_isDraggingPreviewDivider)
+        {
+            return;
+        }
+
+        _isDraggingPreviewDivider = false;
+
+        PreviewDividerHitArea.ReleaseMouseCapture();
+
+        e.Handled = true;
+    }
 }
