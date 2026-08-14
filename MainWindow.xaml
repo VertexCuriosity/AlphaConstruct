@@ -99,6 +99,23 @@
                                        Click="BlackImageBrowseButton_Click"/>
                         </Grid>
 
+                        <!-- Source validation messages -->
+                        <TextBlock x:Name="SourceErrorTextBlock"
+                                   Text=""
+                                   Foreground="#FFDC5050"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   Visibility="Collapsed"
+                                   Margin="0,12,0,0"/>
+
+                        <TextBlock x:Name="SourceWarningTextBlock"
+                                   Text=""
+                                   Foreground="#FFE0A020"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   Visibility="Collapsed"
+                                   Margin="0,8,0,0"/>
+                        
                     </StackPanel>
                 </Border>
 
