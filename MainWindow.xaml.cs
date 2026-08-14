@@ -72,7 +72,7 @@ public partial class MainWindow : FluentWindow
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // File selection
+    // Source file selection
     // ─────────────────────────────────────────────────────────────────────────────
 
     private const string ImageFileFilter =
@@ -113,6 +113,9 @@ public partial class MainWindow : FluentWindow
                 OutputLocationTextBox.Text = sourceFolder;
             }
 
+            OutputImageNameTextBox.Text =
+                CreateDefaultOutputName(dialog.FileName);
+
             ValidateSourceImages();
         }
     }
@@ -141,60 +144,6 @@ public partial class MainWindow : FluentWindow
             BlackImageTextBox.Text = dialog.FileName;
 
             ValidateSourceImages();
-        }
-    }
-
-    private void OutputBrowseButton_Click(object sender, RoutedEventArgs e)
-    {
-        OpenFolderDialog dialog = new()
-        {
-            Title = "Choose output folder"
-        };
-
-        string currentOutputFolder = OutputLocationTextBox.Text;
-
-        if (!string.IsNullOrWhiteSpace(currentOutputFolder) &&
-            Directory.Exists(currentOutputFolder))
-        {
-            dialog.InitialDirectory = currentOutputFolder;
-        }
-        else if (!string.IsNullOrWhiteSpace(WhiteImageTextBox.Text))
-        {
-            string? whiteImageFolder = Path.GetDirectoryName(WhiteImageTextBox.Text);
-
-            if (!string.IsNullOrWhiteSpace(whiteImageFolder) &&
-                Directory.Exists(whiteImageFolder))
-            {
-                dialog.InitialDirectory = whiteImageFolder;
-            }
-        }
-
-        if (dialog.ShowDialog() == true)
-        {
-            OutputLocationTextBox.Text = dialog.FolderName;
-        }
-    }
-
-    private static void SetInitialImageDirectory(
-        OpenFileDialog dialog,
-        string preferredImagePath,
-        string fallbackImagePath)
-    {
-        string? preferredFolder = Path.GetDirectoryName(preferredImagePath);
-
-        if (!string.IsNullOrWhiteSpace(preferredFolder) &&
-            Directory.Exists(preferredFolder))
-        {
-            dialog.InitialDirectory = preferredFolder;
-            return;
-        }
-
-        string? fallbackFolder = Path.GetDirectoryName(fallbackImagePath);
-
-        if (!string.IsNullOrWhiteSpace(fallbackFolder) &&
-            Directory.Exists(fallbackFolder))
-        {
-            dialog.InitialDirectory = fallbackFolder;
         }
     }
 
@@ -794,6 +743,84 @@ public partial class MainWindow : FluentWindow
     // Output selection
     // ─────────────────────────────────────────────────────────────────────────────
 
+    private void OutputBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFolderDialog dialog = new()
+        {
+            Title = "Choose output folder"
+        };
+
+        string currentOutputFolder = OutputLocationTextBox.Text;
+
+        if (!string.IsNullOrWhiteSpace(currentOutputFolder) &&
+            Directory.Exists(currentOutputFolder))
+        {
+            dialog.InitialDirectory = currentOutputFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(WhiteImageTextBox.Text))
+        {
+            string? whiteImageFolder = Path.GetDirectoryName(WhiteImageTextBox.Text);
+
+            if (!string.IsNullOrWhiteSpace(whiteImageFolder) &&
+                Directory.Exists(whiteImageFolder))
+            {
+                dialog.InitialDirectory = whiteImageFolder;
+            }
+        }
+
+        if (dialog.ShowDialog() == true)
+        {
+            OutputLocationTextBox.Text = dialog.FolderName;
+
+            ValidateOutputLocation();
+        }
+    }
+
+    private static void SetInitialImageDirectory(
+        OpenFileDialog dialog,
+        string preferredImagePath,
+        string fallbackImagePath)
+    {
+        string? preferredFolder = Path.GetDirectoryName(preferredImagePath);
+
+        if (!string.IsNullOrWhiteSpace(preferredFolder) &&
+            Directory.Exists(preferredFolder))
+        {
+            dialog.InitialDirectory = preferredFolder;
+            return;
+        }
+
+        string? fallbackFolder = Path.GetDirectoryName(fallbackImagePath);
+
+        if (!string.IsNullOrWhiteSpace(fallbackFolder) &&
+            Directory.Exists(fallbackFolder))
+        {
+            dialog.InitialDirectory = fallbackFolder;
+        }
+    }
+
+    private static string CreateDefaultOutputName(string sourceFilePath)
+    {
+        string fileName = Path.GetFileNameWithoutExtension(sourceFilePath);
+
+        string[] whiteSuffixes =
+        {
+        "_White",
+        "-White",
+        " White"
+    };
+
+        foreach (string suffix in whiteSuffixes)
+        {
+            if (fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName[..^suffix.Length] + "_Transparent";
+            }
+        }
+
+        return fileName + "_Transparent";
+    }
+
     private void UseLinearButton_Click(object sender, RoutedEventArgs e)
     {
         SelectReconstruction(ReconstructionChoice.Linear);
@@ -832,12 +859,50 @@ public partial class MainWindow : FluentWindow
         CreateImageButton.IsEnabled = false;
     }
 
+    private void ShowOutputError(string message)
+    {
+        OutputErrorTextBlock.Text = message;
+        OutputErrorTextBlock.Visibility = Visibility.Visible;
+    }
+
+    private void OutputLocationTextBox_LostFocus(
+    object sender,
+    RoutedEventArgs e)
+    {
+        ValidateOutputLocation();
+    }
+
+    private bool ValidateOutputLocation()
+    {
+        string outputFolder = OutputLocationTextBox.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(outputFolder) ||
+            !Directory.Exists(outputFolder))
+        {
+            ShowOutputError("Please choose a valid output location.");
+            SystemSounds.Exclamation.Play();
+            return false;
+        }
+
+        ClearOutputError();
+        return true;
+    }
+
+    private void ClearOutputError()
+    {
+        OutputErrorTextBlock.Text = "";
+        OutputErrorTextBlock.Visibility = Visibility.Collapsed;
+    }
+
+
     // ─────────────────────────────────────────────────────────────────────────────
     // Image export
     // ─────────────────────────────────────────────────────────────────────────────
 
-    private void CreateImageButton_Click(object sender, RoutedEventArgs e)
+    private async void CreateImageButton_Click(object sender, RoutedEventArgs e)
     {
+        ClearOutputError();
+
         BitmapSource? selectedImage = _selectedReconstruction switch
         {
             ReconstructionChoice.Linear => _linearResult,
@@ -855,19 +920,15 @@ public partial class MainWindow : FluentWindow
         string outputFolder = OutputLocationTextBox.Text.Trim();
         string outputName = OutputImageNameTextBox.Text.Trim();
 
-        if (string.IsNullOrWhiteSpace(outputFolder) ||
-            !Directory.Exists(outputFolder))
+        if (!ValidateOutputLocation())
         {
-            ShowSourceError("Please choose a valid output location.");
-            SystemSounds.Exclamation.Play();
             return;
         }
 
         if (string.IsNullOrWhiteSpace(outputName))
         {
-            ShowSourceError("Please enter an output image name.");
-            SystemSounds.Exclamation.Play();
-            return;
+            outputName = CreateDefaultOutputName(WhiteImageTextBox.Text.Trim());
+            OutputImageNameTextBox.Text = outputName;
         }
 
         if (!outputName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
@@ -879,14 +940,20 @@ public partial class MainWindow : FluentWindow
 
         if (File.Exists(outputPath))
         {
-            System.Windows.MessageBoxResult overwriteResult =
-                System.Windows.MessageBox.Show(
-                    $"The file already exists:\n\n{outputPath}\n\nDo you want to overwrite it?",
-                    "File already exists",
-                    System.Windows.MessageBoxButton.YesNo,
-                    System.Windows.MessageBoxImage.Warning);
+            var overwriteMessageBox = new Wpf.Ui.Controls.MessageBox
+            {
+                Title = "File already exists",
+                Content = $"The file already exists:\n\n{outputPath}\n\nDo you want to overwrite it?",
+                PrimaryButtonText = "Overwrite",
+                SecondaryButtonText = "Cancel",
+                PrimaryButtonAppearance = ControlAppearance.Primary,
+                Owner = this
+            };
 
-            if (overwriteResult != System.Windows.MessageBoxResult.Yes)
+            Wpf.Ui.Controls.MessageBoxResult overwriteResult =
+                await overwriteMessageBox.ShowDialogAsync();
+
+            if (overwriteResult != Wpf.Ui.Controls.MessageBoxResult.Primary)
             {
                 return;
             }
@@ -906,23 +973,29 @@ public partial class MainWindow : FluentWindow
 
             encoder.Save(stream);
 
-            System.Windows.MessageBox.Show(
-                $"Image created successfully:\n\n{outputPath}",
-                "Image created",
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Information);
+            var successMessageBox = new Wpf.Ui.Controls.MessageBox
+            {
+                Title = "Image created",
+                Content = $"Image created successfully:\n\n{outputPath}",
+                CloseButtonText = "OK",
+                Owner = this
+            };
+
+            await successMessageBox.ShowDialogAsync();
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show(
-                $"The image could not be saved:\n\n{ex.Message}",
-                "Export failed",
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Error);
+            var errorMessageBox = new Wpf.Ui.Controls.MessageBox
+            {
+                Title = "Export failed",
+                Content = $"The image could not be saved:\n\n{ex.Message}",
+                CloseButtonText = "OK",
+                Owner = this
+            };
+
+            await errorMessageBox.ShowDialogAsync();
 
             SystemSounds.Exclamation.Play();
         }
     }
-
-
 }

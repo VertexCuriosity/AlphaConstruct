@@ -140,7 +140,8 @@
                             <ui:TextBox x:Name="OutputLocationTextBox"
                                         Grid.Column="0"
                                         PlaceholderText="Default: parent folder of the white source image"
-                                        ToolTip="Choose where the reconstructed PNG should be saved."/>
+                                        ToolTip="Choose where the reconstructed PNG should be saved."
+                                        LostFocus="OutputLocationTextBox_LostFocus"/>
 
                             <ui:Button x:Name="OutputBrowseButton"
                                        Grid.Column="2"
@@ -159,6 +160,14 @@
                                     Height="38"
                                     Margin="0,6,0,0"
                                     ToolTip="Enter the filename for the reconstructed PNG."/>
+                        
+                        <TextBlock x:Name="OutputErrorTextBlock"
+                                   Text=""
+                                   Foreground="#FFDC5050"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   Visibility="Collapsed"
+                                   Margin="0,12,0,0"/>
 
                     </StackPanel>
                 </Border>
