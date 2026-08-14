@@ -1,8 +1,9 @@
-﻿using System.Media;
-using System.Windows.Media.Imaging;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System.IO;
+using System.Media;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -10,6 +11,10 @@ namespace AlphaConstruct;
 
 public partial class MainWindow : FluentWindow
 {
+    private BitmapSource? _linearResult;
+    private BitmapSource? _srgbResult;
+    private bool _sourcePairIsValid;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -269,6 +274,11 @@ public partial class MainWindow : FluentWindow
     {
         ClearSourceMessages();
 
+        _sourcePairIsValid = false;
+
+        _linearResult = null;
+        _srgbResult = null;
+
         string whiteImagePath = WhiteImageTextBox.Text.Trim();
         string blackImagePath = BlackImageTextBox.Text.Trim();
 
@@ -342,6 +352,10 @@ public partial class MainWindow : FluentWindow
                 $"Black: {blackImage.PixelWidth} × {blackImage.PixelHeight}");
             return;
         }
+
+        _sourcePairIsValid = true;
+
+        GenerateReconstructionResults();
     }
 
     private void ShowSourceError(string message)
@@ -365,4 +379,233 @@ public partial class MainWindow : FluentWindow
         SourceWarningTextBlock.Visibility = Visibility.Collapsed;
     }
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Image reconstruction
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private static BitmapSource LoadBitmapAsBgra32(string filePath)
+    {
+        using FileStream stream = File.OpenRead(filePath);
+
+        BitmapDecoder decoder = BitmapDecoder.Create(
+            stream,
+            BitmapCreateOptions.PreservePixelFormat,
+            BitmapCacheOption.OnLoad);
+
+        BitmapFrame frame = decoder.Frames[0];
+
+        BitmapSource source = frame;
+
+        if (source.Format != PixelFormats.Bgra32)
+        {
+            source = new FormatConvertedBitmap(
+                source,
+                PixelFormats.Bgra32,
+                null,
+                0);
+        }
+
+        source.Freeze();
+
+        return source;
+    }
+
+    private static BitmapSource ReconstructSrgb(
+    BitmapSource whiteImage,
+    BitmapSource blackImage)
+    {
+        int width = whiteImage.PixelWidth;
+        int height = whiteImage.PixelHeight;
+        int stride = width * 4;
+
+        byte[] whitePixels = new byte[stride * height];
+        byte[] blackPixels = new byte[stride * height];
+        byte[] resultPixels = new byte[stride * height];
+
+        whiteImage.CopyPixels(whitePixels, stride, 0);
+        blackImage.CopyPixels(blackPixels, stride, 0);
+
+        for (int i = 0; i < resultPixels.Length; i += 4)
+        {
+            double blackB = blackPixels[i] / 255.0;
+            double blackG = blackPixels[i + 1] / 255.0;
+            double blackR = blackPixels[i + 2] / 255.0;
+
+            double whiteB = whitePixels[i] / 255.0;
+            double whiteG = whitePixels[i + 1] / 255.0;
+            double whiteR = whitePixels[i + 2] / 255.0;
+
+            double alphaB = 1.0 - whiteB + blackB;
+            double alphaG = 1.0 - whiteG + blackG;
+            double alphaR = 1.0 - whiteR + blackR;
+
+            double alpha = Math.Clamp(
+                (alphaR + alphaG + alphaB) / 3.0,
+                0.0,
+                1.0);
+
+            double resultB = alpha > 0.0
+                ? blackB / alpha
+                : 0.0;
+
+            double resultG = alpha > 0.0
+                ? blackG / alpha
+                : 0.0;
+
+            double resultR = alpha > 0.0
+                ? blackR / alpha
+                : 0.0;
+
+            resultPixels[i] = ToByte(resultB);
+            resultPixels[i + 1] = ToByte(resultG);
+            resultPixels[i + 2] = ToByte(resultR);
+            resultPixels[i + 3] = ToByte(alpha);
+        }
+
+        BitmapSource result = BitmapSource.Create(
+            width,
+            height,
+            96,
+            96,
+            PixelFormats.Bgra32,
+            null,
+            resultPixels,
+            stride);
+
+        result.Freeze();
+
+        return result;
+    }
+
+    private static BitmapSource ReconstructLinear(
+    BitmapSource whiteImage,
+    BitmapSource blackImage)
+    {
+        int width = whiteImage.PixelWidth;
+        int height = whiteImage.PixelHeight;
+        int stride = width * 4;
+
+        byte[] whitePixels = new byte[stride * height];
+        byte[] blackPixels = new byte[stride * height];
+        byte[] resultPixels = new byte[stride * height];
+
+        whiteImage.CopyPixels(whitePixels, stride, 0);
+        blackImage.CopyPixels(blackPixels, stride, 0);
+
+        for (int i = 0; i < resultPixels.Length; i += 4)
+        {
+            double blackB = SrgbToLinear(blackPixels[i] / 255.0);
+            double blackG = SrgbToLinear(blackPixels[i + 1] / 255.0);
+            double blackR = SrgbToLinear(blackPixels[i + 2] / 255.0);
+
+            double whiteB = SrgbToLinear(whitePixels[i] / 255.0);
+            double whiteG = SrgbToLinear(whitePixels[i + 1] / 255.0);
+            double whiteR = SrgbToLinear(whitePixels[i + 2] / 255.0);
+
+            double alphaB = 1.0 - whiteB + blackB;
+            double alphaG = 1.0 - whiteG + blackG;
+            double alphaR = 1.0 - whiteR + blackR;
+
+            double alpha = Math.Clamp(
+                (alphaR + alphaG + alphaB) / 3.0,
+                0.0,
+                1.0);
+
+            double resultBLinear = alpha > 0.000001
+                ? blackB / alpha
+                : 0.0;
+
+            double resultGLinear = alpha > 0.000001
+                ? blackG / alpha
+                : 0.0;
+
+            double resultRLinear = alpha > 0.000001
+                ? blackR / alpha
+                : 0.0;
+
+            double resultB = LinearToSrgb(resultBLinear);
+            double resultG = LinearToSrgb(resultGLinear);
+            double resultR = LinearToSrgb(resultRLinear);
+
+            resultPixels[i] = ToByte(resultB);
+            resultPixels[i + 1] = ToByte(resultG);
+            resultPixels[i + 2] = ToByte(resultR);
+            resultPixels[i + 3] = ToByte(alpha);
+        }
+
+        BitmapSource result = BitmapSource.Create(
+            width,
+            height,
+            96,
+            96,
+            PixelFormats.Bgra32,
+            null,
+            resultPixels,
+            stride);
+
+        result.Freeze();
+
+        return result;
+    }
+
+    private static double SrgbToLinear(double value)
+    {
+        return value <= 0.04045
+            ? value / 12.92
+            : Math.Pow((value + 0.055) / 1.055, 2.4);
+    }
+
+    private static double LinearToSrgb(double value)
+    {
+        value = Math.Clamp(value, 0.0, 1.0);
+
+        return value <= 0.0031308
+            ? value * 12.92
+            : 1.055 * Math.Pow(value, 1.0 / 2.4) - 0.055;
+    }
+
+    private static byte ToByte(double value)
+    {
+        return (byte)Math.Round(
+            Math.Clamp(value, 0.0, 1.0) * 255.0);
+    }
+
+    private void GenerateReconstructionResults()
+    {
+        _linearResult = null;
+        _srgbResult = null;
+
+        if (!_sourcePairIsValid)
+        {
+            return;
+        }
+
+        try
+        {
+            BitmapSource whiteImage =
+                LoadBitmapAsBgra32(WhiteImageTextBox.Text.Trim());
+
+            BitmapSource blackImage =
+                LoadBitmapAsBgra32(BlackImageTextBox.Text.Trim());
+
+            _srgbResult = ReconstructSrgb(
+                whiteImage,
+                blackImage);
+
+            _linearResult = ReconstructLinear(
+                whiteImage,
+                blackImage);
+        }
+        catch (Exception ex)
+        {
+            _sourcePairIsValid = false;
+            _linearResult = null;
+            _srgbResult = null;
+
+            ShowSourceError(
+                $"The source images could not be reconstructed: {ex.Message}");
+
+            SystemSounds.Exclamation.Play();
+        }
+    }
 }
