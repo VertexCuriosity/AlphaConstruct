@@ -187,44 +187,91 @@
                                 BorderBrush="{ui:ThemeResource CardStrokeColorDefaultBrush}"
                                 ClipToBounds="True">
 
-                            <!-- Temporary checkerboard.
-                                 Later the Linear and sRGB images will be
-                                 layered on top of this surface. -->
-                            <Border.Background>
-                                <DrawingBrush TileMode="Tile"
-                                              Viewport="0,0,24,24"
-                                              ViewportUnits="Absolute">
-                                    <DrawingBrush.Drawing>
-                                        <DrawingGroup>
+                            <Grid x:Name="PreviewGrid">
 
-                                            <GeometryDrawing Brush="#FFE8E8E8">
-                                                <GeometryDrawing.Geometry>
-                                                    <RectangleGeometry Rect="0,0,24,24"/>
-                                                </GeometryDrawing.Geometry>
-                                            </GeometryDrawing>
+                                <!-- Checkerboard background -->
+                                <Border>
+                                    <Border.Background>
+                                        <DrawingBrush TileMode="Tile"
+                                                      Viewport="0,0,24,24"
+                                                      ViewportUnits="Absolute">
+                                            <DrawingBrush.Drawing>
+                                                <DrawingGroup>
 
-                                            <GeometryDrawing Brush="#FFC8C8C8">
-                                                <GeometryDrawing.Geometry>
-                                                    <GeometryGroup>
-                                                        <RectangleGeometry Rect="0,0,12,12"/>
-                                                        <RectangleGeometry Rect="12,12,12,12"/>
-                                                    </GeometryGroup>
-                                                </GeometryDrawing.Geometry>
-                                            </GeometryDrawing>
+                                                    <GeometryDrawing Brush="#FFE8E8E8">
+                                                        <GeometryDrawing.Geometry>
+                                                            <RectangleGeometry Rect="0,0,24,24"/>
+                                                        </GeometryDrawing.Geometry>
+                                                    </GeometryDrawing>
 
-                                        </DrawingGroup>
-                                    </DrawingBrush.Drawing>
-                                </DrawingBrush>
-                            </Border.Background>
+                                                    <GeometryDrawing Brush="#FFC8C8C8">
+                                                        <GeometryDrawing.Geometry>
+                                                            <GeometryGroup>
+                                                                <RectangleGeometry Rect="0,0,12,12"/>
+                                                                <RectangleGeometry Rect="12,12,12,12"/>
+                                                            </GeometryGroup>
+                                                        </GeometryDrawing.Geometry>
+                                                    </GeometryDrawing>
 
-                            <TextBlock x:Name="PreviewPlaceholderText"
-                                       Text="A preview of the newly created image will be shown here"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Foreground="#FF666666"
-                                       Margin="24"/>
+                                                </DrawingGroup>
+                                            </DrawingBrush.Drawing>
+                                        </DrawingBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <!-- Linear result -->
+                                <Image x:Name="LinearPreviewImage"
+                                       Stretch="Uniform"
+                                       Visibility="Collapsed"/>
+
+                                <!-- sRGB result -->
+                                <Grid x:Name="SrgbPreviewClipGrid"
+                                      Visibility="Collapsed">
+
+                                    <Image x:Name="SrgbPreviewImage"
+                                           Stretch="Uniform"/>
+
+                                </Grid>
+
+                                <!-- Divider -->
+                                <Border x:Name="PreviewDivider"
+                                        Width="3"
+                                        Background="White"
+                                        HorizontalAlignment="Center"
+                                        Visibility="Collapsed"/>
+
+                                <!-- Labels -->
+                                <TextBlock x:Name="LinearPreviewLabel"
+                                           Text="Linear"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Margin="12"
+                                           Padding="8,4"
+                                           Background="#99000000"
+                                           Foreground="White"
+                                           Visibility="Collapsed"/>
+
+                                <TextBlock x:Name="SrgbPreviewLabel"
+                                           Text="sRGB"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Top"
+                                           Margin="12"
+                                           Padding="8,4"
+                                           Background="#99000000"
+                                           Foreground="White"
+                                           Visibility="Collapsed"/>
+
+                                <!-- Placeholder -->
+                                <TextBlock x:Name="PreviewPlaceholderText"
+                                           Text="A preview of the newly created image will be shown here"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Foreground="#FF666666"
+                                           Margin="24"/>
+
+                            </Grid>
 
                         </Border>
 

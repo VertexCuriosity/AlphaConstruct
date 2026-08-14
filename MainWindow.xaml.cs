@@ -279,6 +279,8 @@ public partial class MainWindow : FluentWindow
         _linearResult = null;
         _srgbResult = null;
 
+        UpdatePreview();
+
         string whiteImagePath = WhiteImageTextBox.Text.Trim();
         string blackImagePath = BlackImageTextBox.Text.Trim();
 
@@ -595,6 +597,8 @@ public partial class MainWindow : FluentWindow
             _linearResult = ReconstructLinear(
                 whiteImage,
                 blackImage);
+
+            UpdatePreview();
         }
         catch (Exception ex)
         {
@@ -602,10 +606,54 @@ public partial class MainWindow : FluentWindow
             _linearResult = null;
             _srgbResult = null;
 
+            UpdatePreview();
+
             ShowSourceError(
                 $"The source images could not be reconstructed: {ex.Message}");
 
             SystemSounds.Exclamation.Play();
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Preview
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private void UpdatePreview()
+    {
+        if (_linearResult == null || _srgbResult == null)
+        {
+            LinearPreviewImage.Source = null;
+            SrgbPreviewImage.Source = null;
+
+            LinearPreviewImage.Visibility = Visibility.Collapsed;
+            SrgbPreviewClipGrid.Visibility = Visibility.Collapsed;
+            PreviewDivider.Visibility = Visibility.Collapsed;
+            LinearPreviewLabel.Visibility = Visibility.Collapsed;
+            SrgbPreviewLabel.Visibility = Visibility.Collapsed;
+
+            PreviewPlaceholderText.Visibility = Visibility.Visible;
+
+            UseLinearButton.IsEnabled = false;
+            UseSrgbButton.IsEnabled = false;
+
+            return;
+        }
+
+        LinearPreviewImage.Source = _linearResult;
+        SrgbPreviewImage.Source = _srgbResult;
+
+        LinearPreviewImage.Visibility = Visibility.Visible;
+        SrgbPreviewClipGrid.Visibility = Visibility.Visible;
+
+        PreviewDivider.Visibility = Visibility.Visible;
+        LinearPreviewLabel.Visibility = Visibility.Visible;
+        SrgbPreviewLabel.Visibility = Visibility.Visible;
+
+        PreviewPlaceholderText.Visibility = Visibility.Collapsed;
+
+        UseLinearButton.IsEnabled = true;
+        UseSrgbButton.IsEnabled = true;
+    }
+
 }
