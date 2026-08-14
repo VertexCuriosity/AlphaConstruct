@@ -2,6 +2,7 @@
 using System.IO;
 using System.Media;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -17,6 +18,15 @@ public partial class MainWindow : FluentWindow
         None,
         Linear,
         Srgb
+    }
+
+    private enum DialogIcon
+    {
+        Info,
+        Success,
+        Warning,
+        Error,
+        Question
     }
 
     private BitmapSource? _linearResult;
@@ -940,20 +950,14 @@ public partial class MainWindow : FluentWindow
 
         if (File.Exists(outputPath))
         {
-            var overwriteMessageBox = new Wpf.Ui.Controls.MessageBox
-            {
-                Title = "File already exists",
-                Content = $"The file already exists:\n\n{outputPath}\n\nDo you want to overwrite it?",
-                PrimaryButtonText = "Overwrite",
-                SecondaryButtonText = "Cancel",
-                PrimaryButtonAppearance = ControlAppearance.Primary,
-                Owner = this
-            };
+            bool overwrite = ShowModernYesNo(
+                "File already exists",
+                $"The file already exists:\n\n{outputPath}\n\nDo you want to overwrite it?",
+                yes: "Overwrite",
+                no: "Cancel",
+                icon: DialogIcon.Warning);
 
-            Wpf.Ui.Controls.MessageBoxResult overwriteResult =
-                await overwriteMessageBox.ShowDialogAsync();
-
-            if (overwriteResult != Wpf.Ui.Controls.MessageBoxResult.Primary)
+            if (!overwrite)
             {
                 return;
             }
@@ -973,29 +977,338 @@ public partial class MainWindow : FluentWindow
 
             encoder.Save(stream);
 
-            var successMessageBox = new Wpf.Ui.Controls.MessageBox
-            {
-                Title = "Image created",
-                Content = $"Image created successfully:\n\n{outputPath}",
-                CloseButtonText = "OK",
-                Owner = this
-            };
-
-            await successMessageBox.ShowDialogAsync();
+            ShowModernInfo(
+                "Image created",
+                $"Image created successfully.\n\n{outputPath}",
+                ok: "OK",
+                icon: DialogIcon.Success);
         }
         catch (Exception ex)
         {
-            var errorMessageBox = new Wpf.Ui.Controls.MessageBox
-            {
-                Title = "Export failed",
-                Content = $"The image could not be saved:\n\n{ex.Message}",
-                CloseButtonText = "OK",
-                Owner = this
-            };
-
-            await errorMessageBox.ShowDialogAsync();
+            ShowModernInfo(
+                "Export failed",
+                $"The image could not be saved:\n\n{ex.Message}",
+                ok: "OK",
+                icon: DialogIcon.Error);
 
             SystemSounds.Exclamation.Play();
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Themed dialogs
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private FrameworkElement BuildDialogIcon(DialogIcon icon)
+    {
+        string glyph = icon switch
+        {
+            DialogIcon.Success => "✓",
+            DialogIcon.Warning => "!",
+            DialogIcon.Error => "×",
+            DialogIcon.Question => "?",
+            _ => "i"
+        };
+
+        Brush foreground = icon switch
+        {
+            DialogIcon.Success => Brushes.SeaGreen,
+            DialogIcon.Warning => Brushes.Goldenrod,
+            DialogIcon.Error => Brushes.IndianRed,
+            DialogIcon.Question => Brushes.DodgerBlue,
+            _ => Brushes.DodgerBlue
+        };
+
+        return new Border
+        {
+            Width = 36,
+            Height = 36,
+            CornerRadius = new CornerRadius(18),
+            BorderThickness = new Thickness(2),
+            BorderBrush = foreground,
+            VerticalAlignment = VerticalAlignment.Top,
+            Child = new System.Windows.Controls.TextBlock
+            {
+                Text = glyph,
+                Foreground = foreground,
+                FontSize = 22,
+                FontWeight = FontWeights.SemiBold,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextAlignment = TextAlignment.Center
+            }
+        };
+    }
+
+    private void ShowModernInfo(
+        string title,
+        string message,
+        string ok = "OK",
+        DialogIcon icon = DialogIcon.Info)
+    {
+        var dialog = new FluentWindow
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false,
+
+            Width = 440,
+            MinWidth = 440,
+            MaxWidth = 440,
+
+            SizeToContent = SizeToContent.Height,
+            MinHeight = 190,
+
+            ExtendsContentIntoTitleBar = true
+        };
+
+        var outerGrid = new Grid();
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = new GridLength(1, GridUnitType.Star)
+            });
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+
+        // Title bar
+        var titleBar = new Wpf.Ui.Controls.TitleBar
+        {
+            Title = title,
+            ShowMinimize = false,
+            ShowMaximize = false
+        };
+
+        Grid.SetRow(titleBar, 0);
+        outerGrid.Children.Add(titleBar);
+
+        // Main content
+        var contentGrid = new Grid
+        {
+            Margin = new Thickness(20, 18, 20, 8)
+        };
+
+        contentGrid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
+        contentGrid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+
+        FrameworkElement iconElement = BuildDialogIcon(icon);
+
+        Grid.SetColumn(iconElement, 0);
+
+        var messageText = new System.Windows.Controls.TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            MaxWidth = 330,
+            Margin = new Thickness(16, 2, 0, 0),
+            FontSize = 14
+        };
+
+        Grid.SetColumn(messageText, 1);
+
+        contentGrid.Children.Add(iconElement);
+        contentGrid.Children.Add(messageText);
+
+        Grid.SetRow(contentGrid, 1);
+        outerGrid.Children.Add(contentGrid);
+
+        // Button row
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(20, 8, 20, 16)
+        };
+
+        var okButton = new Wpf.Ui.Controls.Button
+        {
+            Content = ok,
+            MinWidth = 80,
+            Height = 34,
+            Appearance = ControlAppearance.Primary,
+            IsDefault = true
+        };
+
+        okButton.Click += (_, _) =>
+        {
+            dialog.DialogResult = true;
+            dialog.Close();
+        };
+
+        buttonPanel.Children.Add(okButton);
+
+        Grid.SetRow(buttonPanel, 2);
+        outerGrid.Children.Add(buttonPanel);
+
+        dialog.Content = outerGrid;
+
+        dialog.ShowDialog();
+    }
+
+    private bool ShowModernYesNo(
+    string title,
+    string message,
+    string yes = "Yes",
+    string no = "Cancel",
+    DialogIcon icon = DialogIcon.Question)
+    {
+        bool result = false;
+
+        var dialog = new FluentWindow
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false,
+
+            Width = 440,
+            MinWidth = 440,
+            MaxWidth = 440,
+
+            SizeToContent = SizeToContent.Height,
+            MinHeight = 190,
+
+            ExtendsContentIntoTitleBar = true
+        };
+
+        var outerGrid = new Grid();
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition { Height = GridLength.Auto });
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = new GridLength(1, GridUnitType.Star)
+            });
+
+        outerGrid.RowDefinitions.Add(
+            new RowDefinition { Height = GridLength.Auto });
+
+        var titleBar = new Wpf.Ui.Controls.TitleBar
+        {
+            Title = title,
+            ShowMinimize = false,
+            ShowMaximize = false
+        };
+
+        Grid.SetRow(titleBar, 0);
+        outerGrid.Children.Add(titleBar);
+
+        var contentGrid = new Grid
+        {
+            Margin = new Thickness(20, 18, 20, 8)
+        };
+
+        contentGrid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
+        contentGrid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+
+        FrameworkElement iconElement = BuildDialogIcon(icon);
+
+        Grid.SetColumn(iconElement, 0);
+
+        var messageText = new System.Windows.Controls.TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            MaxWidth = 330,
+            Margin = new Thickness(16, 2, 0, 0),
+            FontSize = 14
+        };
+
+        Grid.SetColumn(messageText, 1);
+
+        contentGrid.Children.Add(iconElement);
+        contentGrid.Children.Add(messageText);
+
+        Grid.SetRow(contentGrid, 1);
+        outerGrid.Children.Add(contentGrid);
+
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(20, 8, 20, 16)
+        };
+
+        var noButton = new Wpf.Ui.Controls.Button
+        {
+            Content = no,
+            MinWidth = 80,
+            Height = 34,
+            Appearance = ControlAppearance.Secondary,
+            IsCancel = true,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+
+        noButton.Click += (_, _) =>
+        {
+            result = false;
+            dialog.DialogResult = false;
+            dialog.Close();
+        };
+
+        var yesButton = new Wpf.Ui.Controls.Button
+        {
+            Content = yes,
+            MinWidth = 80,
+            Height = 34,
+            Appearance = ControlAppearance.Primary,
+            IsDefault = true
+        };
+
+        yesButton.Click += (_, _) =>
+        {
+            result = true;
+            dialog.DialogResult = true;
+            dialog.Close();
+        };
+
+        buttonPanel.Children.Add(noButton);
+        buttonPanel.Children.Add(yesButton);
+
+        Grid.SetRow(buttonPanel, 2);
+        outerGrid.Children.Add(buttonPanel);
+
+        dialog.Content = outerGrid;
+
+        dialog.ShowDialog();
+
+        return result;
+    }
+
 }
