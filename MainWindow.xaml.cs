@@ -12,11 +12,19 @@ namespace AlphaConstruct;
 
 public partial class MainWindow : FluentWindow
 {
+    private enum ReconstructionChoice
+    {
+        None,
+        Linear,
+        Srgb
+    }
+
     private BitmapSource? _linearResult;
     private BitmapSource? _srgbResult;
     private bool _sourcePairIsValid;
     private double _previewSplitRatio = 0.5;
     private bool _isDraggingPreviewDivider;
+    private ReconstructionChoice _selectedReconstruction = ReconstructionChoice.None;
 
     public MainWindow()
     {
@@ -284,6 +292,7 @@ public partial class MainWindow : FluentWindow
         _linearResult = null;
         _srgbResult = null;
 
+        ResetOutputSelection();
         UpdatePreview();
 
         string whiteImagePath = WhiteImageTextBox.Text.Trim();
@@ -779,5 +788,47 @@ public partial class MainWindow : FluentWindow
         PreviewDividerHitArea.ReleaseMouseCapture();
 
         e.Handled = true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Output selection
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    private void UseLinearButton_Click(object sender, RoutedEventArgs e)
+    {
+        SelectReconstruction(ReconstructionChoice.Linear);
+    }
+
+    private void UseSrgbButton_Click(object sender, RoutedEventArgs e)
+    {
+        SelectReconstruction(ReconstructionChoice.Srgb);
+    }
+
+    private void SelectReconstruction(ReconstructionChoice choice)
+    {
+        _selectedReconstruction = choice;
+
+        UseLinearButton.Appearance =
+            choice == ReconstructionChoice.Linear
+                ? ControlAppearance.Primary
+                : ControlAppearance.Secondary;
+
+        UseSrgbButton.Appearance =
+            choice == ReconstructionChoice.Srgb
+                ? ControlAppearance.Primary
+                : ControlAppearance.Secondary;
+
+        CreateImageButton.IsEnabled =
+            choice != ReconstructionChoice.None;
+    }
+
+    private void ResetOutputSelection()
+    {
+        _selectedReconstruction = ReconstructionChoice.None;
+
+        UseLinearButton.Appearance = ControlAppearance.Secondary;
+        UseSrgbButton.Appearance = ControlAppearance.Secondary;
+
+        CreateImageButton.IsEnabled = false;
     }
 }

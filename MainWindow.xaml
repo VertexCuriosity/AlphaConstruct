@@ -299,14 +299,16 @@
                                        Content="Use Linear"
                                        Height="38"
                                        IsEnabled="False"
-                                       ToolTip="Use the Linear-light reconstruction for the final image."/>
+                                       ToolTip="Use the Linear-light reconstruction for the final image."
+                                       Click="UseLinearButton_Click"/>
 
                             <ui:Button x:Name="UseSrgbButton"
                                        Grid.Column="2"
                                        Content="Use sRGB"
                                        Height="38"
                                        IsEnabled="False"
-                                       ToolTip="Use the direct sRGB reconstruction for the final image."/>
+                                       ToolTip="Use the direct sRGB reconstruction for the final image."
+                                       Click="UseSrgbButton_Click"/>
 
                         </Grid>
 
