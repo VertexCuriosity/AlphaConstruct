@@ -6,6 +6,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  mc:Ignorable="d"
                  Title="AlphaConstruct"
+                 Icon="/Assets/AlphaConstruct.ico"
                  Width="950"
                  Height="980"
                  MinWidth="760"
@@ -25,7 +26,12 @@
                      Title="AlphaConstruct"
                      ShowMaximize="True"
                      ShowMinimize="True"
-                     ShowClose="True"/>
+                     ShowClose="True">
+            <ui:TitleBar.Icon>
+                <ui:ImageIcon Source="/Assets/AlphaConstruct.ico"
+                              Margin="0,0,-8,0"/>
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
 
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto">
