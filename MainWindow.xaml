@@ -7,7 +7,7 @@
                  mc:Ignorable="d"
                  Title="AlphaConstruct"
                  Width="950"
-                 Height="1020"
+                 Height="980"
                  MinWidth="760"
                  MinHeight="500"
                  WindowStartupLocation="CenterScreen"
@@ -65,8 +65,11 @@
                             <ui:TextBox x:Name="WhiteImageTextBox"
                                         Grid.Column="0"
                                         PlaceholderText="Choose the image captured against a white background"
-                                        ToolTip="Choose the image captured against a white background."/>
-
+                                        ToolTip="Choose the image captured against a white background."
+                                        TextChanged="WhiteImageTextBox_TextChanged"
+                                        LostFocus="WhiteImageTextBox_LostFocus"
+                                        KeyDown="WhiteImageTextBox_KeyDown"/>
+                                
                             <ui:Button x:Name="WhiteImageBrowseButton"
                                        Grid.Column="2"
                                        Content="Browse..."
@@ -89,7 +92,10 @@
                             <ui:TextBox x:Name="BlackImageTextBox"
                                         Grid.Column="0"
                                         PlaceholderText="Choose the image captured against a black background"
-                                        ToolTip="Choose the matching image captured against a black background."/>
+                                        ToolTip="Choose the image captured against a black background."
+                                        TextChanged="BlackImageTextBox_TextChanged"
+                                        LostFocus="BlackImageTextBox_LostFocus"
+                                        KeyDown="BlackImageTextBox_KeyDown"/>
 
                             <ui:Button x:Name="BlackImageBrowseButton"
                                        Grid.Column="2"
@@ -233,7 +239,7 @@
                         <!-- Preview surface -->
                         <Border Grid.Row="2"
                                 x:Name="PreviewBorder"
-                                MinHeight="260"
+                                Height="220"
                                 CornerRadius="8"
                                 BorderThickness="1"
                                 BorderBrush="{ui:ThemeResource CardStrokeColorDefaultBrush}"
@@ -246,9 +252,13 @@
                                         Background="{StaticResource CheckerboardBrush}"/>
 
                                 <!-- Linear result -->
-                                <Image x:Name="LinearPreviewImage"
-                                       Stretch="Uniform"
-                                       Visibility="Collapsed"/>
+                                <Grid x:Name="LinearPreviewClipGrid"
+                                      Visibility="Collapsed">
+
+                                    <Image x:Name="LinearPreviewImage"
+                                           Stretch="Uniform"/>
+
+                                </Grid>
 
                                 <!-- sRGB result -->
                                 <Grid x:Name="SrgbPreviewClipGrid"

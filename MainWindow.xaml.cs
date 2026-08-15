@@ -157,12 +157,126 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    private void WhiteImageTextBox_TextChanged(
+    object sender,
+    TextChangedEventArgs e)
+    {
+        ResetSourceResultsAfterPathEdit();
+    }
+
+    private void BlackImageTextBox_TextChanged(
+        object sender,
+        TextChangedEventArgs e)
+    {
+        ResetSourceResultsAfterPathEdit();
+    }
+
+    private void ResetSourceResultsAfterPathEdit()
+    {
+        _sourcePairIsValid = false;
+        _linearResult = null;
+        _srgbResult = null;
+
+        ResetOutputSelection();
+        ClearSourceMessages();
+        UpdatePreview();
+    }
+
+    private void WhiteImageTextBox_LostFocus(
+    object sender,
+    RoutedEventArgs e)
+    {
+        ValidateWhiteImagePath();
+    }
+
+    private void WhiteImageTextBox_KeyDown(
+        object sender,
+        KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            ValidateWhiteImagePath();
+            e.Handled = true;
+        }
+    }
+
+    private void ValidateWhiteImagePath()
+    {
+        string filePath = WhiteImageTextBox.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            ValidateSourceImages();
+            return;
+        }
+
+        ClearSourceMessages();
+
+        if (!ValidateSelectedImageFile(
+            filePath,
+            "white background image"))
+        {
+            return;
+        }
+
+        string? sourceFolder = Path.GetDirectoryName(filePath);
+
+        if (!string.IsNullOrWhiteSpace(sourceFolder))
+        {
+            OutputLocationTextBox.Text = sourceFolder;
+        }
+
+        OutputImageNameTextBox.Text =
+            CreateDefaultOutputName(filePath);
+
+        ValidateSourceImages();
+    }
+
+    private void BlackImageTextBox_LostFocus(
+    object sender,
+    RoutedEventArgs e)
+    {
+        ValidateBlackImagePath();
+    }
+
+    private void BlackImageTextBox_KeyDown(
+        object sender,
+        KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            ValidateBlackImagePath();
+            e.Handled = true;
+        }
+    }
+
+    private void ValidateBlackImagePath()
+    {
+        string filePath = BlackImageTextBox.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            ValidateSourceImages();
+            return;
+        }
+
+        ClearSourceMessages();
+
+        if (!ValidateSelectedImageFile(
+            filePath,
+            "black background image"))
+        {
+            return;
+        }
+
+        ValidateSourceImages();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
     // Source validation
     // ─────────────────────────────────────────────────────────────────────────────
 
     private sealed record ImageInfo(
-        string FilePath,
         int PixelWidth,
         int PixelHeight,
         bool IsJpeg);
@@ -193,7 +307,6 @@ public partial class MainWindow : FluentWindow
                 extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
 
             return new ImageInfo(
-                filePath,
                 frame.PixelWidth,
                 frame.PixelHeight,
                 isJpeg);
@@ -599,7 +712,7 @@ public partial class MainWindow : FluentWindow
             LinearPreviewImage.Source = null;
             SrgbPreviewImage.Source = null;
 
-            LinearPreviewImage.Visibility = Visibility.Collapsed;
+            LinearPreviewClipGrid.Visibility = Visibility.Collapsed;
             SrgbPreviewClipGrid.Visibility = Visibility.Collapsed;
             PreviewDividerHitArea.Visibility = Visibility.Collapsed;
             LinearPreviewLabel.Visibility = Visibility.Collapsed;
@@ -616,7 +729,7 @@ public partial class MainWindow : FluentWindow
         LinearPreviewImage.Source = _linearResult;
         SrgbPreviewImage.Source = _srgbResult;
 
-        LinearPreviewImage.Visibility = Visibility.Visible;
+        LinearPreviewClipGrid.Visibility = Visibility.Visible;
         SrgbPreviewClipGrid.Visibility = Visibility.Visible;
 
         PreviewDividerHitArea.Visibility = Visibility.Visible;
@@ -662,6 +775,8 @@ public partial class MainWindow : FluentWindow
             _linearResult.PixelWidth;
 
         PreviewBorder.Height = previewWidth * aspectRatio;
+
+        PreviewBorder.UpdateLayout();
     }
 
     private void UpdatePreviewSplit()
@@ -681,12 +796,12 @@ public partial class MainWindow : FluentWindow
 
         double splitPosition = previewWidth * _previewSplitRatio;
 
-        LinearPreviewImage.Clip = new RectangleGeometry(
-        new Rect(
-            0,
-            0,
-            splitPosition,
-            previewHeight));
+        LinearPreviewClipGrid.Clip = new RectangleGeometry(
+            new Rect(
+                0,
+                0,
+                splitPosition,
+                previewHeight));
 
         SrgbPreviewClipGrid.Clip = new RectangleGeometry(
             new Rect(
@@ -943,7 +1058,7 @@ public partial class MainWindow : FluentWindow
     // Image export
     // ─────────────────────────────────────────────────────────────────────────────
 
-    private async void CreateImageButton_Click(object sender, RoutedEventArgs e)
+    private void CreateImageButton_Click(object sender, RoutedEventArgs e)
     {
         ClearOutputError();
 
@@ -1019,13 +1134,13 @@ public partial class MainWindow : FluentWindow
         }
         catch (Exception ex)
         {
+            SystemSounds.Exclamation.Play();
+
             ShowModernInfo(
                 "Export failed",
                 $"The image could not be saved:\n\n{ex.Message}",
                 ok: "OK",
                 icon: DialogIcon.Error);
-
-            SystemSounds.Exclamation.Play();
         }
     }
 
