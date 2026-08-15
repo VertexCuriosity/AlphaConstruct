@@ -7,7 +7,11 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="AlphaConstruct.Package/AlphaConstruct.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5" Id="07b3ab0f-5dd8-4be4-bd40-96f2cdb3b208">
+    <BuildType Solution="Debug|Any CPU" Project="Release" />
     <Deploy />
   </Project>
-  <Project Path="AlphaConstruct/AlphaConstruct.csproj" />
+  <Project Path="AlphaConstruct/AlphaConstruct.csproj">
+    <BuildType Solution="Debug|Any CPU" Project="Release" />
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
 </Solution>
