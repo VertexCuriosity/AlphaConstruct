@@ -39,9 +39,21 @@ Install AlphaConstruct from the **[Microsoft Store](STORE-URL-HERE)**.
 - **Common image format support**  
   Import all commonly used image formats and export the reconstructed result as a transparent PNG.
 
-
 ## Preview
-Screenshots and an animated demonstration will be added soon.
+
+AlphaConstruct reconstructs transparency from two matching images captured against black and white backgrounds.
+
+![AlphaConstruct transparency reconstruction](Images/AlphaConstruct-Transparency-Reconstruction.png)
+
+The application provides a simple interface for selecting the two source images, choosing the output location and filename, and previewing the reconstructed result before export.
+
+![AlphaConstruct interface](Images/AlphaConstruct-Interface.png)
+
+The reconstructed image can be previewed against either a transparency checkerboard or a solid background to help inspect the result.
+
+![AlphaConstruct checkerboard preview](Images/AlphaConstruct-Checkerboard-Preview.png)
+
+![AlphaConstruct solid background preview](Images/AlphaConstruct-Solid-Background-Preview.png)
 
 ## Documentation
 ## Video Tutorial
