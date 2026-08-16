@@ -14,7 +14,7 @@ AlphaConstruct is particularly useful for recovering transparent UI elements, ov
 
 Install AlphaConstruct from the **Microsoft Store**.
 
-Install AlphaConstruct from the **[Microsoft Store](STORE-URL-HERE)**.
+Install AlphaConstruct from the **[Microsoft Store](https://apps.microsoft.com/detail/9NC26VXQ0PC6)**.
 
 ## Requirements
 
