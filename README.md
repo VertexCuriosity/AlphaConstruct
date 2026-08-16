@@ -43,19 +43,35 @@ Install AlphaConstruct from the **[Microsoft Store](STORE-URL-HERE)**.
 
 AlphaConstruct reconstructs transparency from two matching images captured against black and white backgrounds.
 
-![AlphaConstruct transparency reconstruction](Images/AlphaConstruct-Transparency-Reconstruction.png)
+![AlphaConstruct transparency reconstruction](screenshots/AlphaConstruct-Transparency-Reconstruction.png)
 
 The application provides a simple interface for selecting the two source images, choosing the output location and filename, and previewing the reconstructed result before export.
 
-![AlphaConstruct interface](Images/AlphaConstruct-Interface.png)
+![AlphaConstruct interface](screenshots/AlphaConstruct-Interface.png)
 
 The reconstructed image can be previewed against either a transparency checkerboard or a solid background to help inspect the result.
 
-![AlphaConstruct checkerboard preview](Images/AlphaConstruct-Checkerboard-Preview.png)
+![AlphaConstruct checkerboard preview](screenshots/AlphaConstruct-Checkerboard-Preview.png)
 
-![AlphaConstruct solid background preview](Images/AlphaConstruct-Solid-Background-Preview.png)
+![AlphaConstruct solid background preview](screenshots/AlphaConstruct-Solid-Background-Preview.png)
 
 ## Documentation
+
+Complete documentation for AlphaConstruct is available on the [VertexCuriosity website](https://vertexcuriosity.com/addons-and-apps/apps/alphaconstruct).
+
+The documentation explains how to prepare the required source images, reconstruct transparency, compare the Linear and sRGB results, preview the reconstructed image, and export the final transparent PNG.
+
+Topics include:
+
+- Preparing the black and white source images
+- Loading the source images
+- Linear and sRGB reconstruction
+- Previewing and comparing the results
+- Checkerboard and solid background previews
+- Exporting the transparent PNG
+- Limitations and source image requirements
+- Privacy and security
+
 ## Video Tutorial
 A complete walkthrough of ReorderFlow, including installation and practical examples, will be available on YouTube.
 
